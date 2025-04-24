@@ -1,0 +1,431 @@
+html {
+  height: -webkit-fill-available;
+}
+
+body {
+  margin: 0;
+  font-family: "Lato", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  min-height: 100vh;
+  /* mobile viewport bug fix */
+  min-height: -webkit-fill-available;
+  overflow-x: hidden;
+}
+
+video {
+  position: absolute;
+  overflow: hidden;
+  width: 100vw;
+  visibility: hidden;
+  display: none;
+}
+
+audio {
+  visibility: hidden;
+}
+
+a,
+u {
+  text-decoration: none;
+}
+
+.bg {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  background-image: url("../assets/images/BG.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+#qr-code {
+  margin: auto;
+  margin-top: 35%;
+  width: 90vw;
+  height: 90vw;
+  background-image: url("../assets/images/QR.png");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.qr-code-text {
+  color: #fffb00;
+  font-size: 3vh;
+  text-align: center;
+}
+
+.qr-code-text-2 {
+  font-size: 2vh;
+}
+
+#overlay {
+  position: absolute;
+  width: 100vw;
+  height: 100dvh;
+  z-index: 9;
+  /* pointer-events: none; */
+}
+
+#look_for_surface_icon {
+  position: absolute;
+  width: 50vw;
+  height: 30vw;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  visibility: hidden;
+  background-image: url("../assets/icons/001.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.main-container {
+  position: absolute;
+  z-index: 10;
+  width: 100vw;
+  height: 100dvh;
+}
+
+.audio-button {
+  position: absolute;
+  top: 10vw;
+  left: 5vw;
+  width: 7.5vw;
+  height: 7.5vw;
+  background-image: url("../assets/icons/Sound_ON.svg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+#close_ar_button {
+  position: absolute;
+  top: 10vw;
+  right: 5vw;
+  width: 7.5vw;
+  height: 7.5vw;
+  background-image: url("../assets/icons/Cancle.svg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  visibility: hidden;
+}
+
+.header {
+  position: absolute;
+  top: 3%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  margin-bottom: 10%;
+}
+
+.movie-title {
+  width: 70vw;
+  height: 20vw;
+  margin: auto;
+  background-image: url("../assets/icons/Golam_logo.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.ar-exp {
+  /* text-align: center;
+  font-size: 5vw;
+  color: #ffffff; */
+  width: 100%;
+  height: 5vw;
+  background-image: url("../assets/icons/AR_Experience.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.middle-part {
+  position: absolute;
+  width: 75%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+}
+
+.page-2-middle-part {
+  top: 55% !important;
+}
+
+.poster {
+  width: 100%;
+  height: 60vw;
+  background-image: url("../assets/images/Poster.jpg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.page-2-middle-part p {
+  text-align: center;
+}
+
+.trailer-video {
+  position: relative;
+  left: 50%;
+  transform: translate(-50%, 0);
+}
+
+.select-language {
+  text-align: center;
+  font-size: 6vw;
+  color: #ffffff;
+}
+
+.select-language-p {
+  color: #fffb00;
+}
+
+.text-message {
+  text-align: center;
+  font-size: 3.5vw;
+  color: #fffb00;
+  opacity: 0.75;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* #ARButton {
+  bottom: -15vw !important;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  width: 75%;
+  height: 10vw;
+  border-style: solid;
+  border-width: 3px !important;
+  border-color: rgb(255, 238, 0) !important;
+  border-radius: 10px;
+  margin: auto;
+  margin-top: 5%;
+  margin-bottom: 5%;
+}
+
+#ARButton p {
+  margin: auto !important;
+  color: #fffb00 !important;
+} */
+
+#ARButton {
+  position: static !important;
+  bottom: 0;
+  text-align: center !important;
+  width: 75% !important;
+  /* height: 100% !important; */
+  border-style: solid !important;
+  border-width: 2px !important;
+  border-color: rgb(255, 255, 255, 1) !important;
+  opacity: 1 !important;
+  border-radius: 10px !important;
+  margin: auto !important;
+  margin-top: 5% !important;
+  margin-bottom: 5% !important;
+  font-size: 5vw !important;
+}
+
+#ARButton p {
+  margin: 5% !important;
+  font-size: 8vw !important;
+  color: #ffffff !important;
+  text-decoration: none !important;
+}
+
+.lang-button {
+  text-align: center;
+  width: 75%;
+  height: 100%;
+  border-style: solid;
+  border-width: 2px;
+  border-color: rgb(255, 255, 255);
+  border-radius: 10px;
+  margin: auto;
+  margin-top: 5%;
+  margin-bottom: 5%;
+}
+
+.lang-button p {
+  margin: 5%;
+  font-size: 5vw;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.footer {
+  position: absolute;
+  width: 50%;
+  bottom: 2%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  text-align: center;
+  margin-top: 10%;
+}
+
+.metavian {
+  width: 50vw;
+  height: 15vw;
+  margin: auto;
+  background-image: url("../assets/icons/Metavian.svg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.bar-indicator {
+  display: flex;
+  flex-direction: row;
+}
+
+.bar {
+  width: 100%;
+  margin: 3px;
+  height: 5px;
+  background-color: rgb(255, 255, 255);
+}
+
+.yellow-bar {
+  background-color: #fffb00;
+}
+
+.image {
+  position: relative;
+  width: 100%;
+  height: 28vw;
+  left: 50%;
+  transform: translate(-50%, 0);
+  background-image: url("../assets/images/4_feet_2.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.steps,
+.steps2 p {
+  font-size: 1.8vh;
+  color: #fffb00;
+}
+
+@media (min-aspect-ratio: 853/1280) {
+  .text-message {
+    font-size: 2.5vw;
+  }
+
+  #look_for_surface_icon {
+    width: 25vw;
+    height: 15vw;
+  }
+  .movie-title {
+    width: 25vw;
+    height: 7vw;
+  }
+  .middle-part {
+    width: 55vw;
+    top: 55%;
+  }
+  .ar-exp {
+    font-size: 3vw;
+  }
+  .select-language {
+    font-size: 3vw;
+  }
+  .lang-button p {
+    font-size: 3vw;
+  }
+  .steps,
+  .steps2 p {
+    font-size: 1.8vh !important;
+  }
+  .metavian {
+    width: 30vw;
+    height: 8vw;
+  }
+}
+
+@media (min-aspect-ratio: 4/3) {
+  .header {
+    position: relative;
+  }
+  .middle-part {
+    position: relative;
+    top: 50vw;
+  }
+  .footer {
+    position: relative;
+  }
+  .image {
+    width: 40vw;
+    height: 20vw;
+    left: 50%;
+    transform: translate(-50%, 0);
+  }
+}
+
+@media (orientation: landscape) {
+  /* #overlay {
+    transform: rotateZ(90deg);
+  } */
+
+  #qr-code {
+    margin: auto;
+    margin-top: 3%;
+    width: 25vw;
+    height: 25vw;
+  }
+
+  .main-container {
+    height: max-content;
+  }
+  .header {
+    margin-bottom: 10%;
+  }
+  .poster {
+    height: 45vw;
+  }
+  .middle-part {
+    top: 40vw;
+    /* transform: translate(-50%, 0); */
+    margin-bottom: 20%;
+  }
+
+  .page-2-middle-part {
+    transform: translate(-50%, 0);
+  }
+
+  #audio_button_1 {
+    z-index: 50;
+  }
+
+  .audio-button {
+    position: absolute;
+    top: 5vh;
+    left: 5vh;
+    width: 5vh;
+    height: 5vh;
+  }
+  .steps,
+  .steps2 p {
+    font-size: 3vh !important;
+  }
+
+  .footer-2 {
+    margin-top: 100% !important;
+  }
+
+  #close_ar_button {
+    top: 5vh;
+    right: 5vh;
+    width: 5vh;
+    height: 5vh;
+  }
+}

@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Golam AR</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <link rel="stylesheet" href="./css/index.css" />
+
+    <script src="https://launchar.app/sdk/v1?key=U5OywKYwTFbhyePKbJms4Zhwe70zxsO9&redirect=true"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.161.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.161.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+
+  <body>
+    <div class="bg"></div>
+    <div class="main-container">
+      <div class="audio-button"></div>
+      <div class="header">
+        <div id="movie-title" class="movie-title"></div>
+        <div class="ar-exp">
+          <!-- <p>AR EXPERIENCE</p> -->
+        </div>
+      </div>
+      <div id="middle-part" class="middle-part page-2-middle-part">
+        <div class="steps">
+          <!-- <p>For the best AR viewing experience please follow these steps</p> -->
+        </div>
+        <div class="image"></div>
+        <div class="steps2">
+          <p>
+            Stand at the center of your living room with 4 feet of empty space
+            in front & back.
+          </p>
+          <p>
+            Place a textured object in front of you & scan it when prompted by
+            the app for accurate & robust camera tracking.
+          </p>
+          <p>Enjoy. Have a GOLAM time.</p>
+        </div>
+        <!-- <div class="lang-button button-malayalam">
+                <p>Continue</p>
+            </div> -->
+      </div>
+      <div class="footer">
+        <div class="metavian"></div>
+        <div class="bar-indicator">
+          <div class="bar"></div>
+          <div class="bar yellow-bar"></div>
+          <div class="bar"></div>
+          <!-- <div class="bar"></div>
+                <div class="bar"></div> -->
+        </div>
+      </div>
+    </div>
+    <video
+      id="asp-video"
+      preload="auto"
+      crossOrigin="anonymous"
+      playsinline
+      webkit-playsinline
+      style="visibility: hidden; pointer-events: none"
+    >
+      <source src="<%= asp_sandeep_video_url %>" />
+    </video>
+
+    <script>
+      var bgAudio = document.getElementById("bgAudio");
+      var audioBT = document.getElementById("audio-button");
+      const movie_title = document.getElementById("movie-title");
+      movie_title.style.backgroundImage = "url('<%= title_image_url %>')";
+      bgAudio.load();
+      bgAudio.loop = true;
+      audioBT.addEventListener("click", () => {
+        if (bgAudio.paused) {
+          bgAudio.play();
+          audioBT.style.backgroundImage =
+            "url('../assets/icons/Sound_OFF.svg')";
+        } else {
+          bgAudio.pause();
+          audioBT.style.backgroundImage = "url('../assets/icons/Sound_ON.svg')";
+        }
+      });
+    </script>
+
+    <script id="vertexShader" type="glsl">
+
+      varying vec2 vUv;
+      void main( void ) {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+      }
+    </script>
+    <script id="fragmentShader" type="glsl">
+
+      uniform vec3 keyColor;
+      uniform float similarity;
+      uniform float smoothness;
+      varying vec2 vUv;
+      uniform sampler2D map;
+      void main() {
+
+          vec4 videoColor = texture2D(map, vUv);
+
+          float Y1 = 0.299 * keyColor.r + 0.587 * keyColor.g + 0.114 * keyColor.b;
+          float Cr1 = keyColor.r - Y1;
+          float Cb1 = keyColor.b - Y1;
+
+          float Y2 = 0.299 * videoColor.r + 0.587 * videoColor.g + 0.114 * videoColor.b;
+          float Cr2 = videoColor.r - Y2;
+          float Cb2 = videoColor.b - Y2;
+
+          float blend = smoothstep(similarity, similarity + smoothness, distance(vec2(Cr2, Cb2), vec2(Cr1, Cb1)));
+          gl_FragColor = vec4(videoColor.rgb, videoColor.a * blend);
+      }
+    </script>
+    <!-- shadow -->
+    <script id="vertexShader2" type="glsl">
+      varying vec2 vUv;
+      void main( void ) {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+      }
+    </script>
+    <script id="fragmentShader2" type="glsl">
+      uniform vec3 keyColor;
+      uniform float similarity;
+      uniform float smoothness;
+      varying vec2 vUv;
+      uniform sampler2D map;
+      void main() {
+
+          vec4 videoColor = texture2D(map, vUv);
+
+          float Y1 = 0.299 * keyColor.r + 0.587 * keyColor.g + 0.114 * keyColor.b;
+          float Cr1 = keyColor.r - Y1;
+          float Cb1 = keyColor.b - Y1;
+
+          float Y2 = 0.299 * videoColor.r + 0.587 * videoColor.g + 0.114 * videoColor.b;
+          float Cr2 = videoColor.r - Y2;
+          float Cb2 = videoColor.b - Y2;
+
+          vec3 shadowColor = vec3(0.0,0.0,0.0);
+          float blend = smoothstep(similarity, similarity + smoothness, distance(vec2(Cr2, Cb2), vec2(Cr1, Cb1)));
+          gl_FragColor = vec4(shadowColor.rgb, videoColor.a * blend * 0.10);
+      }
+    </script>
+    <script type="module">
+      import * as THREE from "three";
+      import { ARButton } from "three/addons/webxr/ARButton.js";
+      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+
+      let camera, scene, renderer;
+      let controller;
+      let xrReferenceSpace = null; // Store reference to XR reference space
+
+      var sceneGroup = null;
+      var murder_scene = null;
+      var asp_group = null;
+      var parentObj = null;
+      let imageFrame1 = null;
+      // let imageFrame2 = null;
+      // let imageFrame3 = null;
+
+      //const selectedCharacter = "<%= character %>";
+      let video1 = document.getElementById("asp-video");
+      // let video2 = document.getElementById("video-lang2");
+      // let video3 = document.getElementById("video-lang3");
+
+      let frustum = null;
+      let pointer = null;
+
+      const textureScale = 1;
+
+      let singleTouchTimeout = null;
+      let touchStartPosX = null;
+      let touchStartPosY = null;
+      let multiTouch = false;
+      let startingDistance = null;
+      let distRatio = null;
+      let frameSizeMultiplier = 1; // how much larger than the model should the frame
+
+      //shaders
+      const vertexShader = document.getElementById("vertexShader").textContent;
+      const fragmentShader =
+        document.getElementById("fragmentShader").textContent;
+      const vertexShaderShadow =
+        document.getElementById("vertexShader2").textContent;
+      const fragmentShaderShadow =
+        document.getElementById("fragmentShader2").textContent;
+
+      var session = null;
+      var referenceSpace = null;
+      var newReferenceSpace = null;
+
+      var timeout = null;
+
+      init();
+      animate();
+
+      function init() {
+        const container = document.createElement("div");
+        document.body.appendChild(container);
+
+        scene = new THREE.Scene();
+
+        camera = new THREE.PerspectiveCamera(
+          70,
+          window.innerWidth / window.innerHeight,
+          0.01,
+          20
+        );
+
+        const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 3);
+        light.position.set(0.5, 1, 0.25);
+        scene.add(light);
+
+        //
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.xr.enabled = true;
+        container.appendChild(renderer.domElement);
+
+        //
+
+        //
+
+        // Request XR session
+        // session = navigator.xr.requestSession('immersive-ar', {
+        // });
+
+        // document.getElementById("landing-page").appendChild(
+        //     ARButton.createButton(renderer, {
+        //         optionalFeatures: ["dom-overlay"],
+        //         domOverlay: { root: document.getElementById("container") },
+        //     })
+        // );
+
+        document.getElementById("middle-part").appendChild(
+          ARButton.createButton(renderer, {
+            mode: "inline",
+            requiredFeatures: ["local-floor"],
+            // optionalFeatures: ["dom-overlay"],
+            // domOverlay: { root: document.getElementById("container") },
+          })
+        );
+        //renderer.xr.setReferenceSpaceType("local-floor");
+
+        // hamburgerButton.addEventListener('click', function (event) {
+        //     event.stopPropagation();
+        //     event.preventDefault();
+        //     if (menuContent.style.visibility === 'hidden') {
+        //         menuContent.style.visibility = 'visible';
+        //     } else {
+        //         menuContent.style.visibility = 'hidden';
+        //     }
+        // });
+
+        // Get the reference space
+        // referenceSpace = session.requestReferenceSpace('local');
+
+        // document.getElementById("ARButton").addEventListener("click", () => {
+        //     document.getElementById("leaflet-download-button").style.visibility = "hidden";
+        //     document.getElementById("hamburger").style.visibility = "visible";
+
+        // });
+
+        controller = renderer.xr.getController(0);
+        //session = renderer.xr.requestSession.requestReferenceSpace("local");
+        controller.addEventListener("select", onSelect);
+        // document
+        //     .getElementById("container")
+        //     .addEventListener("touchstart", onTouchStart, false);
+        // document
+        //     .getElementById("container")
+        //     .addEventListener("touchmove", onTouchMove, false);
+        // document
+        //     .getElementById("container")
+        //     .addEventListener("touchend", onTouchEnd, false);
+        scene.add(controller);
+
+        //
+
+        window.addEventListener("resize", onWindowResize);
+
+        createScene();
+
+        // In case we close the AR session by hitting the button "End AR"
+        // session = renderer.xr.getSession();
+        // console.log(renderer.xr);
+        // renderer.xr.addEventListener("end", () => {
+        //     currentVideo.pause();
+        //     console.log('XR session has ended');
+        //     document.getElementById("leaflet-download-button").style.visibility = "visible";
+        //     document.getElementById("hamburger").style.visibility = "hidden";
+        // });
+
+        // Reset reference space when AR session starts
+        //renderer.xr.addEventListener('sessionstart', onSessionStart);
+
+        //add horizontal plane
+        // var geometry_plane = new THREE.PlaneGeometry(50, 50);
+        // var material_plane = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 });
+        // var horizontalPlane = new THREE.Mesh(geometry_plane, material_plane);
+        // scene.add(horizontalPlane);
+        // horizontalPlane.rotation.x = -Math.PI / 2;
+        // horizontalPlane.position.set(0,0,0,);
+      }
+
+      function createScene() {
+        //load murder_scene
+        const loader = new GLTFLoader();
+
+        sceneGroup = new THREE.Group();
+        murder_scene = new THREE.Group();
+        asp_group = new THREE.Group();
+
+        loader.load("../assets/models/scene.glb", (gltf) => {
+          murder_scene.add(gltf.scene);
+          scene.add(murder_scene);
+          murder_scene.visible = false;
+          murder_scene.position.set(0, -0.5, -2);
+        });
+
+        // create plane for frame_1
+        const videoTexture1 = new THREE.VideoTexture(video1);
+        const geometry1 = new THREE.PlaneGeometry(
+          "<%= textureData.width %>" * frameSizeMultiplier,
+          "<%= textureData.height %>" * frameSizeMultiplier
+        );
+        let chromakeyMaterial1 = new THREE.ShaderMaterial({
+          transparent: true,
+          uniforms: {
+            map: { value: videoTexture1 },
+            keyColor: { value: [0.0, 0.0, 1.0] },
+            similarity: { value: 0.74 }, //0.74
+            smoothness: { value: 0.0 },
+          },
+          vertexShader: vertexShader,
+          fragmentShader: fragmentShader,
+        });
+        chromakeyMaterial1.side = THREE.DoubleSide; //show both sides of the material
+
+        imageFrame1 = new THREE.Mesh(geometry1, chromakeyMaterial1);
+        imageFrame1.position.set(0, 0, 2);
+        // imageFrame1.position
+        //     .set(0, 0, 2)
+        //     .applyMatrix4(controller.matrixWorld);
+        //imageFrame1.quaternion.setFromRotationMatrix(controller.matrixWorld);
+
+        imageFrame1.rotation.x = 0;
+        imageFrame1.rotation.z = 0;
+
+        asp_group.add(imageFrame1);
+        asp_group.visible = false;
+        scene.add(asp_group);
+      }
+
+      function onSelect() {
+        session = renderer.xr.getSession();
+        if (
+          murder_scene != null &&
+          murder_scene.parent == scene &&
+          asp_group != null &&
+          asp_group.parent == scene
+        ) {
+          session
+            .requestReferenceSpace("local-floor")
+            .then((referenceSpace) => {
+              murder_scene.visible = true;
+              asp_group.visible = true;
+              video1.play();
+            });
+        } else {
+          console.log("assets not loaded !");
+        }
+      }
+
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      function getDistance(x1, y1, x2, y2) {
+        let y = x2 - x1;
+        let x = y2 - y1;
+
+        return Math.sqrt(x * x + y * y);
+      }
+
+      function rotateImagePlaneToFaceCamera() {
+        if (imageFrame != null) {
+          imageFrame.lookAt(camera.position);
+          imageFrame.rotation.x = 0;
+          imageFrame.rotation.z = 0;
+        }
+      }
+      var imageFrameCurrentScale = null;
+      function onTouchStart(event) {
+        // Preventing default touch behavior to avoid scrolling
+        // event.stopPropagation();
+        // event.preventDefault();
+
+        if (event.touches.length === 2) {
+          if (imageFrame != null) {
+            imageFrameCurrentScale = imageFrame.scale.x;
+          }
+
+          clearTimeout(singleTouchTimeout);
+          var dx1 = event.touches[0].clientX / window.innerWidth;
+          var dy1 = event.touches[0].clientY / window.innerHeight;
+
+          var dx2 = event.touches[1].clientX / window.innerWidth;
+          var dy2 = event.touches[1].clientY / window.innerHeight;
+
+          startingDistance = getDistance(dx1, dy1, dx2, dy2);
+
+          multiTouch = true;
+        } else if (event.touches.length === 1) {
+          singleTouchTimeout = setTimeout(() => {
+            onSelect();
+            multiTouch = false;
+          }, 250);
+          touchStartPosX = event.touches[0].clientX / window.innerWidth;
+          touchStartPosY = event.touches[0].clientY / window.innerHeight;
+          //onSelect();
+        }
+
+        // if (event.touches.length === 1) {
+        //     reticle.visible = true;
+        //     touchStartPosX = event.touches[0].clientX / window.innerWidth;
+        //     touchStartPosY = event.touches[0].clientY / window.innerHeight;
+        //     //onSelect();
+        // } else if (event.touches.length === 2) {
+        //     var dx1 = event.touches[0].clientX / window.innerWidth;
+        //     var dy1 = event.touches[0].clientY / window.innerHeight;
+
+        //     var dx2 = event.touches[1].clientX / window.innerWidth;
+        //     var dy2 = event.touches[1].clientY / window.innerHeight;
+
+        //     startingDistance = getDistance(dx1, dy1, dx2, dy2);
+        // }
+      }
+
+      let newIndex = 0;
+
+      function onTouchMove(event) {
+        // event.stopPropagation();
+        if (event.touches.length === 2) {
+          clearTimeout(singleTouchTimeout);
+          //console.log("double touch");
+
+          var dx1 = event.touches[0].clientX / window.innerWidth;
+          var dy1 = event.touches[0].clientY / window.innerHeight;
+
+          var dx2 = event.touches[1].clientX / window.innerWidth;
+          var dy2 = event.touches[1].clientY / window.innerHeight;
+
+          let dist = getDistance(dx1, dy1, dx2, dy2);
+          distRatio = dist / startingDistance;
+
+          if (imageFrame != null && imageFrame.parent == scene) {
+            if (distRatio > 1) {
+              //console.log(imageFrame);
+
+              if (imageFrameCurrentScale * distRatio <= 2) {
+                imageFrame.scale.set(
+                  imageFrameCurrentScale * distRatio,
+                  imageFrameCurrentScale * distRatio,
+                  imageFrameCurrentScale * distRatio
+                );
+
+                // Adjust position to maintain bottom position
+                // imageFrame.position.set(
+                //     imageFrameCurrentPosition.x,
+                //     originalBottomY + imageFrame.scale.y / 2,
+                //     imageFrameCurrentPosition.z
+                // );
+              } else {
+                //imageFrameCurrentPosition = imageFrame.position;
+                imageFrame.scale.set(2, 2, 2);
+              }
+            } else if (distRatio < 1) {
+              if (imageFrame.scale.x * distRatio >= 0.5) {
+                ////console.log(imageFrame);
+                //imageFrameCurrentPosition = imageFrame.position;
+                imageFrame.scale.set(
+                  imageFrameCurrentScale * distRatio,
+                  imageFrameCurrentScale * distRatio,
+                  imageFrameCurrentScale * distRatio
+                );
+
+                // Adjust position to maintain bottom position
+                // imageFrame.position.set(
+                //     imageFrameCurrentPosition.x,
+                //     originalBottomY + imageFrame.scale.y / 2,
+                //     imageFrameCurrentPosition.z
+                // );
+              } else {
+                //imageFrameCurrentPosition = imageFrame.position;
+                imageFrame.scale.set(0.5, 0.5, 0.5);
+              }
+            }
+          }
+        } else if (event.touches.length === 1) {
+          //event.preventDefault();
+          // Updating texture index based on touch movement
+          const touch = event.touches[0];
+          const x = touch.clientX / window.innerWidth;
+          const y = touch.clientY / window.innerHeight;
+
+          let deltaX = x - touchStartPosX; //distance travelled in x direction
+          let deltaY = y - touchStartPosY; //distance travelled in y direction
+
+          ////console.log(deltaY);
+
+          if (sceneGroup != null) {
+            sceneGroup.translateZ(deltaY / 40);
+            sceneGroup.translateX(deltaX / 30);
+          }
+          // imageFrame.position.set(imageFrame.position.x-(-1*(deltaX/100)), imageFrame.position.y, imageFrame.position.z-(-1*(deltaY/10)));
+        }
+      }
+
+      function onTouchEnd(event) {
+        // event.stopPropagation();
+        // event.preventDefault();
+        clearTimeout(singleTouchTimeout);
+        if (!multiTouch && event.touches.length === 1) {
+          // onSelect();
+          multiTouch = false;
+        }
+      }
+
+      function logRotation() {
+        if (imageFrame != null) {
+          console.log(imageFrame.rotation.x);
+        }
+      }
+
+      // Create a Frustum object
+      frustum = new THREE.Frustum();
+      var cameraViewProjectionMatrix = new THREE.Matrix4();
+
+      function updateFrustum() {
+        camera.updateMatrixWorld(); // Make sure the camera matrix is updated
+        // camera.matrixWorldInverse.getInverse(
+        //   camera.matrixWorld
+        // );
+        cameraViewProjectionMatrix.multiplyMatrices(
+          camera.projectionMatrix,
+          camera.matrixWorldInverse
+        );
+        frustum.setFromProjectionMatrix(cameraViewProjectionMatrix);
+      }
+      function objectInFrustum(object) {
+        // Update the frustum with the camera's current view
+        updateFrustum();
+
+        // Assuming object has a bounding volume (boundingBox or boundingSphere)
+        if (
+          object.geometry.boundingBox !== null ||
+          object.geometry.boundingSphere !== null
+        ) {
+          // Test for intersection with object's bounding volume
+          return frustum.intersectsObject(object);
+        } else {
+          // If no bounding volume, return true (assume it's in frustum)
+          return true;
+        }
+      }
+      function pointerVisibility() {
+        if (
+          pointer != null &&
+          sceneGroup != null &&
+          sceneGroup.parent == scene
+        ) {
+          if (objectInFrustum(imageFrame1)) {
+            pointer.visible = false;
+          } else {
+            pointer.visible = true;
+          }
+          // if (imageFrame.parent != scene) {
+          //     pointer.visible = false;
+          // }
+        } else {
+          if (pointer != null) pointer.visible = false;
+        }
+      }
+      function positionPointer() {
+        if (pointer != null) {
+          pointer.position.copy(camera.position);
+          pointer.rotation.copy(camera.rotation);
+          pointer.translateZ(-1.5);
+          if (sceneGroup != null) {
+            pointer.lookAt(sceneGroup.position);
+            pointer.rotateX(-Math.PI);
+            pointer.rotateZ(-Math.PI / 2);
+          }
+          pointer.updateMatrix();
+          //pointer.visible = true;
+        }
+      }
+      function getCameraAngle() {
+        console.log((camera.rotation.x * 180) / Math.PI);
+        console.log((camera.rotation.y * 180) / Math.PI);
+        console.log((camera.rotation.z * 180) / Math.PI);
+      }
+
+      //
+
+      function animate() {
+        renderer.setAnimationLoop(render);
+      }
+
+      function render() {
+        pointerVisibility();
+        positionPointer();
+        renderer.render(scene, camera);
+      }
+    </script>
+  </body>
+</html>
